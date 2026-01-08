@@ -5,9 +5,12 @@
 This project is for decoding 433MHz AM transmissions of a GT-WT-02 and AFT 77 A1 weather station transmitters.
 There are a lot of identical transmitters sending a 37bit protocol with checksum for temperature and humidity.
 
-Later on I got a bunch of Digoo temperature, humidity and raingauge Sensors. Unfortunately their 36bit protocol
-does not include a checksum, what makes it nore complex to get reliable values. This repository is confugured
-to use these Digoo sensors right now. But within the decoder source the tansmitter type can be switched.  
+Later on I got a bunch of DIGOO DG-TH8898 weatherstations including temperature/humidity and raingauge aensors.
+Unfortunately their 36bit protocol does not include a checksum, what makes it nore complex to get reliable values.
+This repository is confugured to use these Digoo sensors right now. But within the decoder source the tansmitter
+type can be switched.
+
+<img src="docs/DIGOO DG-TH8898/digoo-dg-th8898.jpg" alt="DIGOO DG-TH8898" width="400" align="center">
 
 The initial decoder source was designed for the Arduino IDE and an ESP8266 device and got migrated to a
 ESPhome Sensor Hub component meanwhile. Before I implemented MQTT Sensors for HomeAssistant. But I like ESPHome
@@ -17,7 +20,8 @@ As additional hardware you will need a 433MHz AM receiver for generating pin int
 It is strongly recommended to use a Superheterodyne 433MHz RF module like the 3400RF or RXB6.
 
 To be honnest, with the RXB6 I've got the most stable resuls and range of reception. I really tried a lot
-of receivers but the RXB6 is the only one I do recommend!
+of these 433MHz AM receivers in the past but **the RXB6 is the only one I do recommend to use!**
+With VCC at 3.3V it provides a low noise level and detects avtive modulation phases very well.
 
 These receivers operate at 3.3V without any issues. NOTE: the data output of these receivers is level based,
 but has a high impedance. Therefore it may not work at GPIO pins with integrated pull up/pull down resistors!
@@ -38,3 +42,6 @@ if you want to get outside weather values like temperature, humidity and precipa
 low power rf sensors may be the smartest way to go. The sensors are chaep and acsurate and made for outdoor
 use and the batteriess last for at leat 18 month. Don't get me wrong, I'am a fan of DIY sensors too, but
 many existing products do the job better.
+
+Wiring diagram:
+![Wiring diagram](docs/wiring-diagram.png)
