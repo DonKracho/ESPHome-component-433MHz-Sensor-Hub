@@ -60,7 +60,7 @@ rf_scanner:
   id: my_scanner
   sensor_type: "DG-TH8898"  # alternatively use "GT-WT-02" (or "DRY_TEST" for dummy data injection) 
   data_pin: D7              # GPIO13 pin where the 433MHZ receiver data output is connected to
-  scan_pin: D5              # optional (very special: the original station panel provides a receive active signal)
+  #scan_pin: D5              # optional (very special: the original station panel provides a receive active signal)
   led_pin: D4               # GPIO2 optional for scanning feedback via onboard LED
 
 text_sensor:
@@ -125,7 +125,7 @@ text_sensor:
     rf_scanner: my_scanner
     id: unbekannt
 
-sensor: # force switch source to be added used by internal temperatur, humidity and precipiation sensors
+sensor: # template sensors for absolute humidity and dew point (update triggered by 'Carport' sensor)
   - platform: template
     name: "Carport Habs"
     id: humidity_abs
