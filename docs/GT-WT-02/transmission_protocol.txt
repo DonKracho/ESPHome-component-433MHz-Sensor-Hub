@@ -1,0 +1,62 @@
+  Kompatible 433MHz Funk Temperatur/Luftfeuchte Sensoren:
+  Funksensor GT-WT-02 (Globaltronics GmbH & Co. KG, DomStr. 19, 20095 Hamburg)
+  Funksensor NT-1959 (Latupo GmbH, Waterloohain 5, 22769 Hamburg PJN-Nr.: EL201523-01) (Pollin)
+  und baugleiche Sensoren
+
+  für Wetter Stationen wie GT-WS-08 und GT-WS-09 (Aldi)
+
+  Ein Sendeimpuls (Modulation aktiv) ist zwischen 480 und 600us lang gefolgt von einer Pause (Modulation ausgeschaltet)
+  Eine Puls Pause Folge entspricht einem Bit oder Sync Impuls
+  die Länge der Pause ist hier definiert zu:
+  2070us 0
+  4140us 1
+  9060us Start/End
+  Sync zwischen den Ütertragungen der 37 Bit Pakete 9060 20180 9060
+     _
+  0 | |_ _ _ 2700us             ca. 2/7 * 300us
+     _
+  1 | |_ _ _ _ _ _  4730 us     ca. 2/14 * 300us
+     _                                 _       _
+  S | |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _| |_ _ _| |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ Beginn der Übertragung
+
+  Protokoll: 37 Bit pro Daten Paket
+  Zwischen den Datenpaketen ist ein Sync Impuls und wird insgesamt 6 mal wiederholt
+  Ca. alle 56s wird ein neues Datenpaket gesendet
+  Der Anfang der ersten Übertragung kann stark gestört sein bis die AGC des Empfängers (Pendel-Audion) eingeregelt ist.
+
+  Beispiel LOG 6 aufeinander folgender 6 Datenpakete mit Programm RTL_433:
+
+  [01] {37} d9 01 07 61 20 : 11011001 00000001 00000111 01100001 00100000
+  [02] {37} d9 01 07 61 20 : 11011001 00000001 00000111 01100001 00100000
+  [03] {37} d9 01 07 61 20 : 11011001 00000001 00000111 01100001 00100000
+  [04] {37} d9 01 07 61 20 : 11011001 00000001 00000111 01100001 00100000
+  [05] {37} d9 01 07 61 20 : 11011001 00000001 00000111 01100001 00100000
+  [16] {37} d9 01 07 61 20 : 11011001 00000001 00000111 01100001 00100000
+
+  Codierung des Signals:
+
+  0000000001111111111222222222233333333
+  0123456789012345678901234567890123456
+  KKKKKKKKBSCCTTTTTTTTTTTTHHHHHHHPPPPPP
+  OOOOOOOOAEHHEEEEEEEEEEEEUUUUUUURRRRRR
+  DDDDDDDDTNNNMMMMMMMMMMMMMMMMMMMÜÜÜÜÜÜ
+  EEEEEEEETDLLPPPPPPPPPPPPIIIIIIIFFFFFF
+
+  K = 00-07,  8 Bit = Wechselnder Code bei Batteriewechsel
+  B = 08-08,  1 Bit = Batteriestatus 0 = ok, 1 = low
+  S = 09-09,  1 Bit = Sendtaste gedrückt = 1, pairing?
+  C = 10-11,  2 Bit = Kanal, 00 = K1, 01 = K2, 10 = K3
+  T = 12-24, 12 Bit = Temperatur, binär MSB->LSB o. Komma 26,0=260, 2er Komplement
+                Bit 12 MSB 0=positiv, 1=negativ (4095+1 - Bit13-23 bin2dez)
+  H = 25-30,  7 Bit = Feuchte, binär, Bereich 20-90% LL=10%, HH=110%
+  P = 31-36,  6 Bit = Prüfsumme 8 Nibbles aufsummiert
+                      bin2Dez Bit 00-03 +
+                      bin2Dez Bit 04-07 +
+                      bin2Dez Bit 08-11 +
+                      bin2Dez Bit 12-15 +
+                      bin2Dez Bit 16-21 +
+                      bin2Dez Bit 22-23 +
+                      bin2Dez Bit 24-27 +
+                      bin2Dez Bit 28-30 + Fill Bit 0 =
+                      Summe
+                      Prüfsumme = Summe Modulo 64

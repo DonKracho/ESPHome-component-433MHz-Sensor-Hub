@@ -1,0 +1,45 @@
+  Digoo DG-TH8898 Wetterstation (433MHz Funk Temperatur/Luftfeuchte Sensoren und Regenmesser)
+
+  Ein Sendeimpuls (Modulation aktiv) ist 520 lang gefolgt von einer Pause (Modulation ausgeschaltet)
+  Eine Puls Pause Folge entspricht einem Bit oder Sync Impuls
+  die Länge der Pause ist hier definiert zu:
+     _
+  0 | |_ _ _ 1480 us
+     _
+  1 | |_ _ _ _ _ _  2440 us
+     _
+  S | |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 4400 us Beginn eine Datenpaketes
+
+  Protokoll: 36 Bit pro Daten Paket
+  Zwischen den Datenpaketen ist ein Sync Impuls. Das Paket wird insgesamt 10 mal wiederholt.
+  Der Anfang der ersten Übertragung kann stark gestört sein bis die AGC des Empfängers (Pendel-Audion) eingeregelt ist.
+
+  Codierung des Signals:
+
+  000000000111111111122222222223333333
+  012345678901234567890123456789012345
+  KKKKKKKKBSCCTTTTTTTTTTTTXXXXHHHHHHHH
+
+  Temperatursensor:
+  K = 00-07,  8 Bit = Wechselnder Code bei Batteriewechsel (nur Temperatur/Luftfeuchte Sensor)
+  B = 08-08,  1 Bit = Batteriestatus 0 = ok, 1 = low
+  S = 09-09,  1 Bit = 0 (eine Sendtaste gibt es nicht)
+  C = 10-11,  2 Bit = Kanal, 00 = K1, 01 = K2, 10 = K3, (11 = K4 Regensensor)
+  T = 12-23, 12 Bit = Temperatur, binär MSB->LSB o. Komma 26,0=260, 2er Komplement
+                      Bit 12 MSB 0=positiv, 1=negativ (4095+1 - Bit13-23 bin2dez)
+  X = 24-27   4 Bit = Sensor Typ 1111 für Temperatur/Luftfeuchte Sensor
+  H = 28-35,  8 Bit = Luftfeuchte in %, binär Wert (Werte unter 20 zeigt das Display als 20% an)
+
+  Regensensor:
+  K = 00-07   8 Bit = ID (wechselt nicht bei Batterieweechsel, aber abweichende, feste Codes je Regenmesser)
+  B = 08-08,  1 Bit = Batteriestatus 0 = ok, 1 = low
+  S = 09-09,  1 Bit = 0 (eine Sendtaste gibt es nicht)
+  C = 10-11,  2 Bit = 11 (Kanal 4)
+  R = 12-35  20 Bit = Anzahl der Wippenschläge seit einlegen der Batterien (1 Wipenschlag == 0.3mm)
+
+  Vereinzelt kam es zu einem Reset des Zählers auf 0. Das war aber auf die wackelige Batteriehalterung zurückzuführen.
+
+  Öberfläche 49x109,5mm - (11*11 - 2pi*5.5) (abgerundete Ecken) = 5340 mm² = 0,00534m²
+
+  Achtung: Es gibt keine Checksumme, die Übertragung ist daher sehr unsicher.
+  Im Decoder Loop müssen daher 2 gesendete Pakete gleich sein bevor sie decodiert werden.
