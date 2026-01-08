@@ -7,8 +7,12 @@ There are a lot of identical transmitters sending a 37bit protocol with checksum
 
 Later on I got a bunch of DIGOO DG-TH8898 weatherstations including temperature/humidity and raingauge aensors.
 Unfortunately their 36bit protocol does not include a checksum, what makes it nore complex to get reliable values.
-This repository is confugured to use these Digoo sensors right now. But within the decoder source the tansmitter
-type can be switched.
+This repository is confugured to use these Digoo sensors right now. But the sensor type can set within the
+configuration.yaml file. Allowed values are:
+
+- "DRY-TEST" emulates a sensor transmission with random values every 10s
+- "GT-WT-02" for the General Tech sensors
+- "DG-TH8898" for the DIGOO sensors,
 
 <img src="docs/DIGOO DG-TH8898/digoo-dg-th8898.jpg" alt="DIGOO DG-TH8898" width="400" align="center">
 

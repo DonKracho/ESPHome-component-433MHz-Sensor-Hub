@@ -3,11 +3,18 @@
 #define RF_SCANNER
 #include "esphome/core/component.h"
 #include "esphome/core/gpio.h"
+#include "config.h"
 
 namespace esphome {
 namespace rf_scanner {
 
 class RfSensor;
+
+enum EnumSensorType {
+  DRY_TEST  = -1,
+  GT_WT_02  = TX_GTECH,
+  DG_TH8898 = TX_DIGOO,
+};
 
 struct SensorMessage
 {
@@ -34,8 +41,12 @@ class RfScanner : public Component
   void set_datapin(InternalGPIOPin *pin) { dpin_ = pin; };
   void set_scanpin(InternalGPIOPin *pin) { spin_ = pin; };
   void set_ledpin(InternalGPIOPin *pin)  { lpin_ = pin; };
+  void set_sensor_type(EnumSensorType type) { sensor_type_ = type; }
+ 
+  protected:
+  const char *sensor_type_to_str(EnumSensorType type);
+  EnumSensorType sensor_type_{DG_TH8898};
 
- protected:
   bool scan_data(struct SensorMessage *message);
   std::vector<RfSensor*> sensors_;
   InternalGPIOPin *dpin_{nullptr};

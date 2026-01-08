@@ -1,9 +1,7 @@
 #include "rf_scanner.h"
-#include "config.h"
+#include "tx_decoder.h"
+#include "text_sensor/rf_sensor.h"
 #include "esphome/core/log.h"
-#include "esphome.h"
-
-//#define DUMMY_RECEIVER
 
 namespace esphome {
 namespace rf_scanner {
@@ -15,7 +13,8 @@ static const char *const TAG = "rf_scanner";
 float RfScanner::get_setup_priority() const { return setup_priority::HARDWARE; }
 
 void RfScanner::setup() {
-# ifndef DUMMY_RECEIVER
+  if (sensor_type_ == DRY_TEST) return;
+
   // trasnfer settings to global Config class which is used a wrapper do old tx_decoder code
   dpin_->setup();
   cfg.Tx.RecvPin = dpin_->get_pin();
@@ -27,26 +26,28 @@ void RfScanner::setup() {
     lpin_->setup();
     cfg.Tx.LedPin = lpin_->get_pin();
   }
-  cfg.Tx.Type = TX_DIGOO;   // use TX_GTECH to decode GT-WT-02 sensors
+  cfg.Tx.Type = static_cast<enum eTx433Type>(sensor_type_);
   txd.Setup();
-# endif
 }
 
 void RfScanner::loop() {
-# ifdef DUMMY_RECEIVER  // generate a test record every 10s
-  static uint32_t last_us = 0;
-  uint32_t time_us = millis();
+  SensorMessage data;
 
-  if (time_us > last_us + 10000UL) {
-    ESP_LOGI(TAG, "dummy receiver inject data");
-    last_us = time_us;
-    SensorMessage data;
-    scan_data(&data);
-# else
+  if (sensor_type_ == DRY_TEST) {
+    static uint32_t last_us = 0;
+    uint32_t time_us = millis();
+
+    if (time_us > last_us + 10000UL) {
+      ESP_LOGI(TAG, "dummy receiver inject data");
+      last_us = time_us;
+      scan_data(&data);
+    } else {
+      return;
+    }
+  } else {
     TXDecoder::rec scan;
     txd.Loop();
     if (txd.GetRecord(scan)) {
-      SensorMessage data;
       data.txid = scan.txid;
       data.channel = scan.channel;
       if (data.channel == 3) {  // channel 3 has special encoding for rain count
@@ -57,7 +58,10 @@ void RfScanner::loop() {
       }
       data.battery = scan.battery;
       data.timestamp = scan.timestamp;
-# endif
+    }
+  }
+
+  if (data.timestamp > 0L) {
     for (auto sensor : sensors_) {
       int16_t txid = sensor->get_txid();
       int16_t chan = sensor->get_chan();
@@ -76,28 +80,45 @@ void RfScanner::loop() {
 
 void RfScanner::dump_config() {
   ESP_LOGCONFIG(TAG, "RfSensor:");
+  ESP_LOGCONFIG(TAG,"  Sensor type: %s", sensor_type_to_str(sensor_type_));
   LOG_PIN("  Data Pin: ", dpin_);
   LOG_PIN("  Scan Pin: ", spin_);
   LOG_PIN("  LED  Pin: ", lpin_);
 }
 
+const char *RfScanner::sensor_type_to_str(EnumSensorType type) {
+  switch (type) {
+    case DRY_TEST:
+      return "DRY-TEST";
+    case GT_WT_02:
+      return "GT-WT-02";
+    case DG_TH8898:
+      return "DG-TH8898";
+    default:
+      return "UNKNOWN";
+  }
+}
+
 bool RfScanner::scan_data(struct SensorMessage *message)
 {
-# ifdef DUMMY_RECEIVER
-  static uint16_t  gauge_count = 0;
+  static float gauge_count = 0;
+  size_t sensor_count = sensors_.size();
+  if (sensor_type_ == DRY_TEST && sensor_count > 0) {
+    uint8_t index = rand() % sensor_count;
 
-  // generate some test data
-  uint8_t ids[8][2] { { 179, 1 }, {20, 2}, {135, 3}, {214, 4}, {39, 1}, {127, 4}, {222, 2}, {45, 3} };
-  uint8_t index = rand() % 8;
-  message->txid = ids[index][0];
-  message->channel = ids[index][1];
-  if (message->channel == 4) {
-    message->precipitation = gauge_count++ * 0.25f;
-  } else {
-    message->humidity = 65.0f + (rand() % 100) * 0.05f;
-    message->temperature = 22.1f + (rand() % 100) * 0.01f;
+    // generate some test data
+    message->txid = sensors_[index]->get_txid();
+    message->channel = sensors_[index]->get_chan();
+    if (message->channel == 4) {
+      message->precipitation = gauge_count++ * 0.25f;
+    } else {
+      message->humidity = 65.0f + (rand() % 100) * 0.05f;
+      message->temperature = 22.1f + (rand() % 100) * 0.01f;
+    }
+    time_t now;
+    time(&now);
+    message->timestamp = now;
   }
-# endif
   return true;
 }
 

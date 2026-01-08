@@ -1,0 +1,157 @@
+substitutions:
+  device_name: digoo
+  friendly_name: 'DIGOO DG-TH8898'
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  name_add_mac_suffix: false
+
+esp8266:
+  board: d1_mini
+  framework:
+    version: recommended
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret esphome_api_key
+
+# Allow Over-The-Air updates
+ota:
+  - platform: esphome
+    password: !secret esphome_ota_key
+
+wifi:
+  min_auth_mode: WPA2
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "${device_name} fallback hotspot"
+    password: !secret hotspot_password
+
+# Allow provisioning Wi-Fi via serial or web_server
+#improv_serial:
+# or connect to the fallback ap and get redirected to a web page for wifi credentials
+# To have a "next url" for improv serial
+web_server:
+
+# In combination with the `ap` this allows the user
+# to provision wifi credentials to the device via WiFi AP.
+captive_portal:
+
+external_components:
+  source: github://DonKracho/ESPHome-component-433MHz-Sensor-Hub/components@main
+  refresh: 0s
+  components: [rf_scanner]
+
+time:
+  # used for creating timesamps in text sensors
+  - platform: homeassistant
+    id: homeassistant_time
+
+rf_scanner:
+  id: my_scanner
+  sensor_type: "DG-TH8898"  # alternatively use "GT-WT-02" (or "DRY_TEST" for dummy data injection) 
+  data_pin: D7              # GPIO13 pin where the 433MHZ receiver data output is connected to
+  scan_pin: D5              # optional (very special: the original station panel provides a receive active signal)
+  led_pin: D4               # GPIO2 optional for scanning feedback via onboard LED
+
+text_sensor:
+  - platform: rf_scanner
+    name: 'Carport'
+    rf_scanner: my_scanner
+    id: carport
+    rfid: 65
+    chan: 0
+    temperature:
+      name: "Carport Temp"
+      id: carport_temp
+      force_update: true
+    humidity:
+      name: "Carport Humi"
+      id: carport_humi
+      on_value:
+        then:
+          - component.update: humidity_abs
+          - component.update: dew_point
+  - platform: rf_scanner
+    name: 'Holzhaus'
+    rf_scanner: my_scanner
+    id: holzhaus
+    rfid: 30
+    chan: 1
+    temperature:
+      name: "Holzhaus Temp"
+      force_update: true
+    humidity:
+      name: "Holzhaus Humi"
+
+  - platform: rf_scanner
+    name: 'Gewächshaus'
+    rf_scanner: my_scanner
+    id: gewaechshaus
+    rfid: 1
+    chan: 2
+    temperature:
+      name: "Gewächshaus Temp"
+      force_update: true
+    humidity:
+      name: "Gewächshaus Humi"
+
+  - platform: rf_scanner
+    name: 'Niederschlag'
+    rf_scanner: my_scanner
+    id: niederschlag
+    rfid: 214 # fixed value
+    chan: 3   # fixed value
+    precipitation:
+      name: "Niederschlag abs."
+    history:
+      name: "Niederschlag 48h"
+    intensity:
+      name: "Niederschlag Rate"
+
+# this dummy sensor catches all sensors not defined before
+# also used to get the new rfid after battery change
+  - platform: rf_scanner
+    name: 'Unbekannt'
+    rf_scanner: my_scanner
+    id: unbekannt
+
+sensor: # force switch source to be added used by internal temperatur, humidity and precipiation sensors
+  - platform: template
+    name: "Carport Habs"
+    id: humidity_abs
+    lambda: |-
+      const float temperature = id(carport_temp).state;
+      const float humidity = id(carport_humi).state;
+      const float mw = 18.01534;    // molar mass of water g/mol
+      const float r = 8.31447215;   // Universal gas constant J/mol/K
+      return (6.112 * powf(2.718281828, (17.67 * temperature) /
+        (temperature + 243.5)) * humidity * mw) /
+        ((273.15 + temperature) * r);
+    accuracy_decimals: 2
+    update_interval: never
+    icon: 'mdi:water'
+    unit_of_measurement: 'g/m³'
+
+  - platform: template
+    name: "Carport Taup"
+    id: dew_point
+    lambda: |-
+      const float temperature = id(carport_temp).state;
+      const float humidity = id(carport_humi).state;
+      return (243.5 * (log(humidity / 100) + ((17.67 * temperature) /
+        (243.5 + temperature))) / (17.67 - log(humidity / 100) -
+        ((17.67 * temperature) / (243.5 + temperature))));
+    accuracy_decimals: 1
+    update_interval: never
+    icon: 'mdi:water-thermometer-outline'
+    unit_of_measurement: '°C'
