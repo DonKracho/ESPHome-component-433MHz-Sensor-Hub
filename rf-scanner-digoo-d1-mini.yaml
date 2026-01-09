@@ -84,46 +84,53 @@ text_sensor:
   - platform: rf_scanner
     name: 'Holzhaus'
     rf_scanner: my_scanner
-    id: holzhaus
+    id: timberhouse
     rfid: 30
     chan: 1
     temperature:
       name: "Holzhaus Temp"
+      id: timberhouse_temp
       force_update: true
     humidity:
       name: "Holzhaus Humi"
+      id: timberhouse_humi
 
   - platform: rf_scanner
     name: 'Gewächshaus'
     rf_scanner: my_scanner
-    id: gewaechshaus
+    id: greenhouse
     rfid: 1
     chan: 2
     temperature:
       name: "Gewächshaus Temp"
+      id: greenhouse_temp
       force_update: true
     humidity:
       name: "Gewächshaus Humi"
+      id: greenhouse_humi
 
   - platform: rf_scanner
     name: 'Niederschlag'
     rf_scanner: my_scanner
-    id: niederschlag
+    id: precipation
     rfid: 214 # fixed value
     chan: 3   # fixed value
     precipitation:
       name: "Niederschlag abs."
+      id: precipation_abs
     history:
       name: "Niederschlag 48h"
+      id: precipation_48h
     intensity:
       name: "Niederschlag Rate"
+      id: precipation_rate
 
 # this dummy sensor catches all sensors not defined before
 # also used to get the new rfid after battery change
   - platform: rf_scanner
     name: 'Unbekannt'
     rf_scanner: my_scanner
-    id: unbekannt
+    id: unknown
 
 sensor: # template sensors for absolute humidity and dew point (update triggered by 'Carport' sensor)
   - platform: template
