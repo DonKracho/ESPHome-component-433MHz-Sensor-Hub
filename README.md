@@ -26,7 +26,7 @@ because it is easier to use and does communicate with HomeAssistant faster.
 As additional hardware you will need a 433MHz AM receiver for generating pin interrupts.
 It is strongly recommended to use a Superheterodyne 433MHz RF module like the 3400RF or RXB6.
 
-To be honnest, with the RXB6 I've got the most stable results and range of reception. I really tried a lot
+To be honnest, with the [RXB6](docs/rxb6_datasheet.pdf) I've got the most stable results and range of reception. I really tried a lot
 of these 433MHz AM receivers in the past, but **the RXB6 is the only one I do recommend to use!**
 With VCC at 3.3V it provides a low noise level and detects active modulation phases very well.
 
