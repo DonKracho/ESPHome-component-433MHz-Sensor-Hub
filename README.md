@@ -46,9 +46,9 @@ and published to the according sensors. The rain sensor has a history functional
 and accumulated sum of the last 48h.
 
 if you want to get outdoor weather values like temperature, humidity and precipation, decoding these
-low power rf sensors may be the smartest way to go. The sensors are chaep and accurate and designed for outdoor
-use. The batteriess last for at leat 18 month. Don't get me wrong, I'am a fan of DIY sensors too, but
-many existing products do the job better.
+low power rf sensors may be the smartest way to go. The sensors are cheap and accurate and designed for outdoor
+use. The batteries last for at least 18 month. Don't get me wrong, I'm a fan of DIY sensors, but
+many existing products do the job better and at lower price.
 
 Wiring diagram:
 ![Wiring diagram](docs/wiring-diagram.png)
